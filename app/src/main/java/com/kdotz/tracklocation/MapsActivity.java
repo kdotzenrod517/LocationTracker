@@ -3,11 +3,14 @@ package com.kdotz.tracklocation;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -17,6 +20,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -50,10 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-
     }
-
 
     /**
      * Manipulates the map once available.
@@ -76,10 +79,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onLocationChanged(Location location) {
                 mMap.clear();
-                Toast.makeText(MapsActivity.this, "Location found: " + location.toString(), Toast.LENGTH_SHORT).show();
                 LatLng currentLatLong = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.addMarker(new MarkerOptions().position(currentLatLong).title("Marker in Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLong, 20));
+
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                try {
+                   List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                    if(addressList != null && addressList.size() > 0){
+                        Log.i("PlaceInfo", addressList.get(0).toString());
+                        String address = "";
+                        if(addressList.get(0).getAddressLine(0) != null){
+                            address += addressList.get(0).getAddressLine(0) + " ";
+                        }
+//                        if(addressList.get(0).getLocality() != null){
+//                            address += addressList.get(0).getLocality() + " ";
+//                        }
+//                        if(addressList.get(0).getPostalCode() != null){
+//                            address += addressList.get(0).getPostalCode() + " ";
+//
+//                        }
+//                        if(addressList.get(0).getAdminArea() != null){
+//                            address += addressList.get(0).getAdminArea();
+//
+//                        }
+                        Toast.makeText(MapsActivity.this, "Address: " + address, Toast.LENGTH_LONG).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
 
             @Override
